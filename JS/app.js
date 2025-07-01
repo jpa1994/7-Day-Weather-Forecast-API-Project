@@ -3,12 +3,12 @@
 
 //? Fetching the information link below
 
+
 let currentLocation;
 let currentWeather;
 let searchBar = document.getElementById("searchBar");
 let button = document.querySelector("#showWeather");
 let forecastPlacement = document.querySelector('.revealForecast');
-//button.addEventListener("click", pasteDataToPage);
 
 // Convert userInput from search bar to array and numbers
 searchBar.addEventListener("submit",(e) => {
@@ -81,49 +81,110 @@ searchBar.addEventListener("submit",(e) => {
             .catch(error => {
                 console.log(error);
             })
+            pasteDataToPage();
     }
 
 
-async function pasteDataToPage() {
-    //? This is going to reference the Fetch function above.
-    await fetchData(points);
+    async function pasteDataToPage() {
+        /////? This is going to reference the Fetch function above.
+        //await fetchData(points);
 
-    console.log(currentLocation);
-    console.log(currentWeather);
+        console.log(currentLocation);
+        console.log(currentWeather);
 
-    // To change innerText later
-    let img = document.querySelector("img");
-    let day = document.querySelector(".dayOfWeek");
-    let fullDate = document.querySelector(".fullDate");
-    let cityState = document.querySelector(".cityState");
-    let temp = document.querySelector(".temp");
-    let cloudsAndRain = document.querySelector(".cloudsAndRain");
-    let descSmall = document.querySelector(".descSmall");
+        // Grab card container and fullcard
+        let forecastContainer = document.querySelector(".card-container");
+        forecastContainer.classList.add("ms-5", "me-5")
 
-    // Weather Image
-    img.src = currentWeather.properties.periods[0].icon;
-    img.alt = `${currentWeather.properties.periods[0].shortForecast},${currentWeather.properties.periods[0].detailedForecast}`;
+        // Clone og card and replace with newContainer cards
+        let newContainer = forecastContainer.cloneNode(true);
+        forecastContainer.parentNode.replaceChild(newContainer, forecastContainer);
 
-    // Day
-    day.innerText = currentWeather.properties.periods[0].name;
-
-    // Date
-    let startTime = currentWeather.properties.periods[0].startTime;
-    let date = new Date(startTime);
-    let dayMonth = `${date.getMonth() + 1}/${date.getDate()}`;
-    fullDate.innerText = dayMonth;
+        // Re-assign forecastContainer with newContainer data
+        forecastContainer = newContainer;
 
 
-    // City, State
-    cityState.innerText = `${currentLocation.properties.relativeLocation.properties.city}, ${currentLocation.properties.relativeLocation.properties.state}`;
+        //let img = document.querySelector("img");
+        //let day = document.querySelector(".dayOfWeek");
+        //let fullDate = document.querySelector(".fullDate");
+        //let temp = document.querySelector(".temp");
+        //let cloudsAndRain = document.querySelector(".cloudsAndRain");
+        //let accButton = document.querySelector(".accButton");
+        //let descSmall = document.querySelector(".descSmall");
 
-    // High/Low Temps
-    temp.innerText = `H: ${currentWeather.properties.periods[0].temperature}°${currentWeather.properties.periods[0].temperatureUnit}/ L: ${currentWeather.properties.periods[1].temperature}°${currentWeather.properties.periods[0].temperatureUnit}`;
+        // City and State
+        let city = currentLocation.properties.relativeLocation.properties.city;
+        let state = currentLocation.properties.relativeLocation.properties.state;
+        let cityState = document.querySelector(".cityState");
+        cityState.innerText = `${city},${state}`;
 
-    // Clouds/Rain description
-    cloudsAndRain.innerText = `${currentWeather.properties.periods[0].shortForecast}`;
-    descSmall.innerText = `${currentWeather.properties.periods[0].detailedForecast}`;
-}
-pasteDataToPage();
-});
+        // Only use daytime and current time weather (first 7 days including today)
+        ////let daytimePeriods = periods.filter(p => p.isDaytime).slice(0, 7);
+        let periods = currentWeather.properties.periods;
+        let firstPeriod = periods[0];
+        let daytimePeriods = [];
+
+        // Dispalys "Tonight" from first period if it's not daytime
+        if (!firstPeriod.isDaytime) {
+            daytimePeriods.push(firstPeriod);
+            daytimePeriods.push(...periods.filter(p => p.isDaytime).slice(0, 6));
+
+            //* If not "Tonight", then first period must be daytime
+        } else {
+            daytimePeriods = periods.filter(p => p.isDaytime).slice(0, 7);
+        }
+
+        // Clear old cards
+        while (forecastContainer.firstChild) {
+            forecastContainer.removeChild(forecastContainer.firstChild);
+        }
+
+        // Make new cards with appropriate API info
+        daytimePeriods.forEach((period, i) => {
+
+            // Clone card template and it's child nodes. Assign clone to fullCard.
+            let template = document.getElementById("cardTemplate");
+            let card = template.content.cloneNode(true).children[0];
+            forecastContainer.appendChild(card);
+
+
+            // Image
+            card.querySelector("img").src = period.icon;
+            card.querySelector("img").alt = period.shortForecast;
+
+            // Day of week and full date
+            card.querySelector(".dayOfWeek").innerText = period.name;
+            let date = new Date(period.startTime);
+            card.querySelector(".fullDate").innerText = `${date.getMonth() + 1}/${date.getDate()}`;
+
+            // Hight and Low temps
+            let fullIndex = periods.findIndex(p => p.name == period.name);
+            let low = periods[fullIndex + 1]?.temperature ?? "N/A";
+            let unit = period.temperatureUnit;
+            card.querySelector(".temp").innerText = `H: ${period.temperature}°${unit} / L: ${low}°${unit}`;
+
+            // Clouds and rain
+            card.querySelector(".cloudsAndRain").innerText = period.shortForecast;
+            card.querySelector(".descSmall").innerText = period.detailedForecast;
+
+            // Accordion
+            let accId = `accordion${i}`;
+            let collapseId = `collapse${i}`;
+
+            let accordion = card.querySelector(".accordion");
+            let accButton = card.querySelector(".accButton");
+            let collapseDiv = card.querySelector(".accordion-collapse");
+
+            accordion.id = accId;
+            collapseDiv.id = collapseId;
+
+            collapseDiv.setAttribute("data-bs-parent", `#${accId}`);
+            accButton.setAttribute("data-bs-target", `#${collapseId}`);
+            accButton.setAttribute("aria-controls", collapseId);
+
+            forecastContainer.appendChild(card);
+        })
+    }
+
+})
 

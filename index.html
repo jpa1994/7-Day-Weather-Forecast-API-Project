@@ -15,7 +15,7 @@
             <div class="row">
                 <div class="col-12 text-center">
                     <h1>7 Day Weather Forecast</h1>
-                    <h5 class="card-title cityState">City, State</h5>
+                    <h5 class="card-title cityState"></h5>
                 </div>
             </div>
         </div>
@@ -33,7 +33,8 @@
     <!---->
 
     <main role="main">
-        <div class="card-container">
+        <!--Template to clone. Template does not appear on page-->
+        <template id="cardTemplate">
             <div class="card fullCard mb-3">
                 <div class="row g-0">
                     <div class="col-md-3">
@@ -45,13 +46,13 @@
                         <p class="card-text fullDate"></p>
                         <p class="card-text temp">Tempuratures</p>
                         <p class="card-text cloudsAndRain">Cloudy/Sunny/Rain/Light Rain, etc</p>
-                        <div class="accordion" id="accordionExample">
+                        <div class="accordion" id="accordionTemplate">
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                <button class="accordion-button collapsed accButton" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTemplate" aria-expanded="false" aria-controls="collapseTemplate">
                                     Detailed Forecast</button>
                                 </h2>
-                                <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                <div id="collapseTemplate" class="accordion-collapse collapse" data-bs-parent="#accordionTemplate">
                                 <div class="accordion-body">
                                     <p class="card-text description"><small class="text-body-secondary descSmall">hxkgkm</small></p>
                                 </div>
@@ -62,11 +63,13 @@
                 </div>
                 </div>
             </div>
-        </div>
+        </template>
+        <!---->
 
-        <div id="card-container"></div>
+
+        <div class="card-container"></div>
+
     </main>
-
 
 
 
